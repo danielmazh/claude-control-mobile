@@ -2,6 +2,7 @@ import { useState } from "preact/hooks";
 import { Icon } from "../components/Icon";
 import { BackBar, Card, CardHead, Chevron, Dot, Empty, IconTile, ProjectChip, RoundButton, SourceTag, useApp } from "../components/ui";
 import { reviveSpec, RunSheet } from "../components/Revive";
+import { onMac, OpenSheet } from "../components/OpenClaude";
 import { dir, T } from "../i18n";
 import type { Link, Session } from "../types";
 import {
@@ -35,8 +36,6 @@ function OpenLabel({ prefix }: { prefix: string }) {
 export const appUrl = (s: Session) =>
   s.source === "desktop" && s.id.startsWith("local_") ? `claude://code/continue?session=${encodeURIComponent(s.id)}` : null;
 
-/** A Mac with a mouse (an iPad also reports "Mac", but with touch). */
-const onMac = () => /Mac/.test(navigator.platform) && navigator.maxTouchPoints < 2;
 
 /** On a Mac it asks: the Claude app or the browser. Elsewhere it opens the web link. */
 function OpenButton({ s }: { s: Session }) {
@@ -67,38 +66,6 @@ function OpenButton({ s }: { s: Session }) {
   );
 }
 
-function OpenSheet({ app, web, onClose }: { app: string; web: string; onClose: () => void }) {
-  return (
-    <div class="sheet-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="open-title">
-        <span class="sheet-grip" aria-hidden="true" />
-        <h2 id="open-title" class="sheet-title">{T.whereToOpen}</h2>
-        <p class="sheet-text">{T.whereToOpenText}</p>
-        <div class="sheet-actions">
-          <a class="btn-primary" href={app} onClick={onClose}>
-            <span dir={dir()}>
-              {T.inApp[0]}
-              <bdi>Claude</bdi>
-              {T.inApp[1]}
-            </span>
-            <Icon name="devices" size={22} />
-          </a>
-          <a class="btn-outline wide" href={web} target="_blank" rel="noopener" onClick={onClose}>
-            <span dir={dir()}>
-              {T.inBrowser[0]}
-              <bdi>claude.ai</bdi>
-              {T.inBrowser[1]}
-            </span>
-            <Icon name="external" size={20} />
-          </a>
-          <button type="button" class="btn-outline wide" onClick={onClose}>
-            {T.cancel}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export function ChatScreen({ id }: { id: string }) {
   const { idx, deck, nav } = useApp();

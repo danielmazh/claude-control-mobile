@@ -1,3 +1,4 @@
+import { LaunchClaude } from "./OpenClaude";
 import { createContext } from "preact";
 import type { ComponentChildren } from "preact";
 import { useContext } from "preact/hooks";
@@ -104,6 +105,7 @@ export function TabHeader({ title, sub, logo = false }: { title: string; sub: st
         <p>{sub}</p>
       </div>
       <span class="spacer" />
+      <LaunchClaude />
       <RoundButton icon="settings" label={T.settings} onClick={() => nav.push({ kind: "settings" })} />
     </header>
   );
