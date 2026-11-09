@@ -1,0 +1,13 @@
+{"type":"permission-mode","permissionMode":"default"}
+{"type":"user","timestamp":"2026-01-01T10:00:00.000Z","cwd":"/tmp/fx/term","message":{"role":"user","content":"Fake prompt one"},"origin":{"kind":"human"}}
+{"type":"assistant","timestamp":"2026-01-01T10:00:05.000Z","cwd":"/tmp/fx/term","message":{"role":"assistant","stop_reason":"tool_use","content":[{"type":"tool_use","id":"t1","name":"Bash","input":{}}]}}
+{"type":"user","timestamp":"2026-01-01T10:00:06.000Z","cwd":"/tmp/fx/term","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"t1","content":"ok"}]}}
+{"type":"assistant","timestamp":"2026-01-01T10:00:09.000Z","isSidechain":true,"message":{"role":"assistant","stop_reason":"tool_use","content":[{"type":"text","text":"Sidechain text is ignored"}]}}
+{"type":"assistant","timestamp":"2026-01-01T10:00:10.000Z","cwd":"/tmp/fx/term","message":{"role":"assistant","stop_reason":"end_turn","content":[{"type":"thinking","thinking":"x"}]}}
+{"type":"assistant","timestamp":"2026-01-01T10:00:11.000Z","cwd":"/tmp/fx/term","message":{"role":"assistant","stop_reason":"end_turn","content":[{"type":"text","text":"  Fake final answer\n\nwith   two lines.  "}]}}
+{"type":"system","subtype":"stop_hook_summary","timestamp":"2026-01-01T10:00:11.500Z"}
+{"type":"system","subtype":"turn_duration","timestamp":"2026-01-01T10:00:12.000Z","durationMs":12000}
+{"type":"custom-title","customTitle":"Fake alpha title"}
+{"type":"bridge-session","bridgeSessionId":"cse_FAKEalpha01","lastSequenceNum":3}
+{"type":"system","subtype":"bridge_status","timestamp":"2026-01-01T11:00:00.000Z","url":"https://claude.ai/code/session_FAKEalpha01"}
+{"type":"user","timestamp":"2026-01-01T11:00:01.000Z","isMeta":true,"message":{"role":"user","content":"meta line is ignored"}}

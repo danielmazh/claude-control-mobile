@@ -1,0 +1,2 @@
+{"type":"user","timestamp":"2026-01-01T07:00:00.000Z","cwd":"/tmp/fx/home","message":{"role":"user","content":"Fake prompt delta"}}
+{"type":"assistant","timestamp":"2026-01-01T07:00:01.000Z","cwd":"/tmp/fx/home","message":{"role":"assistant","stop_reason":"end_turn","content":[{"type":"text","text":"Fake delta answer"}]}}

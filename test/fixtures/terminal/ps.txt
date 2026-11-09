@@ -1,0 +1,6 @@
+    1     0 /sbin/launchd
+  500     1 /bin/zsh -l
+  510   500 claude --resume aaaaaaaa-0000-4000-8000-000000000001 --remote-control alpha
+  600     1 -zsh
+  610   600 /usr/local/bin/claude --resume=dddddddd-0000-4000-8000-000000000004
+  700     1 grep -- --resume bbbbbbbb-0000-4000-8000-000000000002

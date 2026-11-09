@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  launchd agent for Claude Control Mobile. scripts/install.sh fills the placeholders (double underscore names)
+  and writes the result to ~/Library/LaunchAgents. Do not load this file as is.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>io.github.danielmazh.claude-control-mobile</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>__NODE_PATH__</string>
+    <string>--experimental-strip-types</string>
+    <string>server/main.ts</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>__WORKING_DIR__</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>DECK_PORT</key>
+    <string>7810</string>
+    <key>DECK_DATA_DIR</key>
+    <string>__DATA_DIR__</string>
+    <key>DECK_ALLOWED_HOSTS</key>
+    <string>__ALLOWED_HOSTS__</string>
+    <key>NODE_ENV</key>
+    <string>production</string>
+    <key>PATH</key>
+    <string>/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin</string>
+  </dict>
+
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <!-- Wait 10s between restarts if it crashes. -->
+  <key>ThrottleInterval</key>
+  <integer>10</integer>
+
+  <!-- Low priority so it does not slow other sessions. -->
+  <!-- 2026-11-05: ProcessType Background removed - macOS starved the server (0.3s CPU in 3 min, never listened). Nice 10 is enough. -->
+  <!-- <key>ProcessType</key> <string>Background</string> -->
+  <key>ProcessType</key>
+  <string>Standard</string>
+  <key>Nice</key>
+  <integer>10</integer>
+  <key>LowPriorityIO</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>__LOG_FILE__</string>
+  <key>StandardErrorPath</key>
+  <string>__LOG_FILE__</string>
+</dict>
+</plist>

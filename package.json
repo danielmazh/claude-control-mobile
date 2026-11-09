@@ -1,0 +1,28 @@
+{
+  "name": "claude-control-mobile",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.6"
+  },
+  "scripts": {
+    "start": "node --experimental-strip-types server/main.ts",
+    "test": "node --experimental-strip-types --test 'server/**/*.test.ts'",
+    "web:dev": "vite web",
+    "web:build": "vite build web"
+  },
+  "dependencies": {
+    "web-push": "^3.6.7"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.10.6",
+    "@types/node": "^26.6.6",
+    "@types/web-push": "^3.6.4",
+    "preact": "^11.1.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.6"
+  },
+  "license": "MIT",
+  "author": "Daniel Mazhbits",
+  "repository": "github:danielmazh/claude-control-mobile"
+}

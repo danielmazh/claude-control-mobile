@@ -1,0 +1,5 @@
+rc-resume|1|alpha|500
+rc-resume|2|beta|520
+rc-resume|3|gamma.md|530
+work|1|a|b|540
+broken line
