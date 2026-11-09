@@ -6,6 +6,7 @@ import { controlLine, fixAllSpec, restartDaemonSpec, RunSheet, useControlStatus,
 import { dir, lang, setLang, T, type Lang } from "../i18n";
 import { useTheme, type ThemeChoice } from "../theme";
 import type { Label } from "../types";
+import qrcode from "qrcode-generator";
 import { cx, LABEL_COLORS } from "../util";
 
 type PushState = "unsupported" | "ios-install" | "denied" | "off" | "on" | "busy";
@@ -158,6 +159,11 @@ export function SettingsScreen() {
       <ControlCard />
 
       <div class="section-head">
+        <h2>{T.addDevice}</h2>
+      </div>
+      <AddDeviceCard />
+
+      <div class="section-head">
         <h2>{T.theme}</h2>
       </div>
       <div class="segmented" role="radiogroup" aria-label={T.theme}>
@@ -209,6 +215,76 @@ export function SettingsScreen() {
 }
 
 /** Spec 0004: the two Claude Control actions that are not about one session. */
+function AddDeviceCard() {
+  const [url, setUrl] = useState<string | null>(null);
+  const [err, setErr] = useState("");
+  const [copied, setCopied] = useState(false);
+  const show = () =>
+    api.getLoginLink().then(setUrl, (e) => setErr(e instanceof Error ? e.message : String(e)));
+  const svg = (() => {
+    if (!url) return "";
+    const q = qrcode(0, "M");
+    q.addData(url);
+    q.make();
+    return q.createSvgTag({ cellSize: 6, margin: 2, scalable: true });
+  })();
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(url!);
+    } catch {
+      const t = document.createElement("textarea");
+      t.value = url!;
+      document.body.appendChild(t);
+      t.select();
+      document.execCommand("copy");
+      t.remove();
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+  const close = () => {
+    setUrl(null);
+    setCopied(false);
+  };
+  return (
+    <Card>
+      <div class="rows">
+        <div class="row static">
+          <IconTile icon="phone" tone="plain" />
+          <span class="row-text">
+            <span class="row-title">{T.addDevice}</span>
+            <span class="row-sub">{err || T.addDeviceSub}</span>
+          </span>
+          <button type="button" class="btn-outline small" onClick={show}>
+            {T.addDeviceShow}
+          </button>
+        </div>
+      </div>
+      {url && (
+        <div class="sheet-backdrop" onClick={(e) => e.target === e.currentTarget && close()}>
+          <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="qr-title">
+            <span class="sheet-grip" aria-hidden="true" />
+            <h2 id="qr-title" class="sheet-title">
+              {T.addDevice}
+            </h2>
+            <p class="sheet-text">{T.addDeviceText}</p>
+            <div class="qr-box" dangerouslySetInnerHTML={{ __html: svg }} />
+            <p class="card-hint">{T.addDeviceWarn}</p>
+            <div class="sheet-actions">
+              <button type="button" class="btn-outline wide" onClick={copy}>
+                {copied ? T.addDeviceCopied : T.addDeviceCopy}
+              </button>
+              <button type="button" class="btn-primary" onClick={close}>
+                {T.close}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </Card>
+  );
+}
+
 function ControlCard() {
   const st = useControlStatus(5000);
   const [sheet, setSheet] = useState<RunSpec | null>(null);

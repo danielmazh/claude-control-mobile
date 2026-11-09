@@ -1725,3 +1725,7 @@ p {
 :root[dir="ltr"] .icon.flip-ltr {
   transform: scaleX(-1);
 }
+
+/* QR for connecting one more device: always dark on white so cameras read it. */
+.qr-box { background: #fff; border-radius: 16px; padding: 12px; width: min(260px, 70vw); margin: 4px auto 12px; }
+.qr-box svg { display: block; width: 100%; height: auto; }

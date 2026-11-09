@@ -345,6 +345,15 @@ export function createDeck(opts: DeckOptions): Deck {
     const id = parts[1] !== undefined ? decodeURIComponent(parts[1]) : undefined;
 
     if (method === "GET" && path === "/api/snapshot") return sendJson(res, 200, snapshot());
+    // The sign-in link for one more device. Only a signed-in device can ask, and it
+    // already holds the token, so this shows nothing new. Never logged.
+    if (method === "GET" && path === "/api/login-link") {
+      const local = (h: string) => /^(localhost|127\.0\.0\.1)(:\d+)?$/.test(h);
+      const asked = req.headers.host ?? "";
+      const host = asked && !local(asked) ? asked : opts.allowedHosts.find((h) => !local(h));
+      const base = host ? `https://${host}` : `http://${asked || "127.0.0.1"}`;
+      return sendJson(res, 200, { url: `${base}/login?token=${encodeURIComponent(opts.token)}` });
+    }
     if (method === "GET" && path === "/api/devices") return sendJson(res, 200, buildDevices(snapshot().sessions, folders.folders()));
 
     if (method === "GET" && path === "/api/events") {

@@ -157,6 +157,12 @@ export async function getDevices(): Promise<Devices> {
   return request<Devices>("GET", "/api/devices");
 }
 
+/** Sign-in link for one more device (shown as a QR in Settings). */
+export async function getLoginLink(): Promise<string> {
+  if (mode === "mock") return "https://example.ts.net/login?token=demo";
+  return (await request<{ url: string }>("GET", "/api/login-link")).url;
+}
+
 // ---------- Claude Control (spec 0004) ----------
 
 let mockAction: ControlStatus["action"] = null;
