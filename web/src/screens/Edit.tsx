@@ -4,10 +4,11 @@ import type { Priority, SessionPatch } from "../types";
 import { T } from "../i18n";
 import { cx, PRIORITIES, priorityText } from "../util";
 
-/** The user layer of one chat: priority, labels, note, project. */
+/** The user layer of one chat: hub name, priority, labels, note, project. Claude's own files are never written. */
 export function EditScreen({ id }: { id: string }) {
   const { idx, deck, nav, toast } = useApp();
   const s = idx.byId.get(id);
+  const [name, setName] = useState(s?.renamed ? s.title : "");
   const [priority, setPriority] = useState<Priority>(s?.priority ?? "normal");
   const [labelIds, setLabelIds] = useState<string[]>(s?.labelIds ?? []);
   const [note, setNote] = useState(s?.note ?? "");
@@ -28,6 +29,7 @@ export function EditScreen({ id }: { id: string }) {
   const save = async (e: Event) => {
     e.preventDefault();
     const patch: SessionPatch = {};
+    if (name.trim() !== (s.renamed ? s.title : "")) patch.title = name.trim();
     if (priority !== s.priority) patch.priority = priority;
     if (labelIds.join() !== s.labelIds.join()) patch.labelIds = labelIds;
     if (note !== s.note) patch.note = note;
@@ -48,6 +50,33 @@ export function EditScreen({ id }: { id: string }) {
       <p class="edit-for">
         <bdi>{s.title}</bdi>
       </p>
+
+      <div class="section-head">
+        <h2>{T.name}</h2>
+      </div>
+      <input
+        class="field"
+        dir="auto"
+        value={name}
+        maxLength={120}
+        placeholder={s.appTitle}
+        aria-label={T.name}
+        onInput={(e) => setName((e.target as HTMLInputElement).value)}
+      />
+      {s.renamed && (
+        <p class="hint-line name-hint">
+          {T.nameInClaude[0]}
+          <bdi>Claude</bdi>
+          {T.nameInClaude[1]} <bdi>{s.appTitle}</bdi>
+        </p>
+      )}
+      {(s.renamed || name.trim() !== "") && (
+        <button type="button" class="btn-ghost small name-reset" onClick={() => setName("")}>
+          {T.resetName[0]}
+          <bdi>Claude</bdi>
+          {T.resetName[1]}
+        </button>
+      )}
 
       <div class="section-head">
         <h2>{T.priorityTitle}</h2>

@@ -13,6 +13,7 @@ const mk = (id: string, running: boolean | null, extra: Partial<Session> = {}): 
   terminal: running === null ? null : { tmuxTarget: null, running, attachCmd: null, name: id },
   revive: running === null ? null : "restart",
   kind: "code",
+  appTitle: "T " + id, renamed: false,
   ...extra,
 });
 

@@ -75,7 +75,7 @@ export async function relocalizeMock(): Promise<void> {
   for (const s of mockSnap.sessions) {
     const f = byId.get(s.id);
     if (!f) continue;
-    Object.assign(s, { title: f.title, summary: f.summary, needsAction: f.needsAction, note: f.note, project: f.project, cwd: f.cwd, terminal: s.terminal && f.terminal ? { ...f.terminal, running: s.terminal.running } : s.terminal });
+    Object.assign(s, { title: s.renamed ? s.title : f.title, appTitle: f.appTitle, summary: f.summary, needsAction: f.needsAction, note: f.note, project: f.project, cwd: f.cwd, terminal: s.terminal && f.terminal ? { ...f.terminal, running: s.terminal.running } : s.terminal });
     const items = new Map(f.subagents.items.map((a) => [a.id, a.description]));
     for (const a of s.subagents.items) a.description = items.get(a.id) ?? a.description;
   }
@@ -108,7 +108,12 @@ export async function patchSession(id: string, patch: SessionPatch): Promise<Ses
     await delay(250);
     const s = mockSnap!.sessions.find((x) => x.id === id);
     if (!s) throw new ApiError(404, "not found");
-    Object.assign(s, patch);
+    const { title, ...rest } = patch;
+    Object.assign(s, rest);
+    if (title !== undefined) {
+      const t = title.trim();
+      Object.assign(s, { title: t || s.appTitle, renamed: !!t });
+    }
     mockEmit();
     return { ...s };
   }

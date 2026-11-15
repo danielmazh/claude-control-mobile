@@ -1,4 +1,4 @@
-// API contract v2.4 (docs/api.md, specs 0002 to 0005). Owned by lane A, read by lane B.
+// API contract v2.5 (docs/api.md, specs 0002 to 0005). Owned by lane A, read by lane B.
 
 export type Status = "waiting" | "working" | "idle" | "archived";
 export type Priority = "high" | "normal" | "low";
@@ -14,7 +14,7 @@ export interface Label {
 
 export interface Session {
   id: string; // desktop sessionId (local_...), cli_<CLI session id> for a terminal session, cowork_<sessionId> for a Cowork chat
-  title: string; // exactly as the Claude app shows it
+  title: string; // v2.5: the hub name (user override) when set, else appTitle
   cwd: string;
   project: string; // user override, else detected subfolder of a workspace root, else last folder name of cwd
   status: Status;
@@ -45,6 +45,9 @@ export interface Session {
   revive: ReviveMode | null; // null: cannot be revived from the hub
   // v2.4 (spec 0005): general (non-code) chats, kept apart from code in the UI
   kind: Kind;
+  // v2.5: rename for the hub only, Claude files stay untouched
+  appTitle: string; // exactly as the Claude app (or terminal manifest, Cowork) shows it
+  renamed: boolean; // true when the user set a hub name
 }
 
 /** "restart": a manifest session, Claude Control restarts it by name. "resume": a desktop session with a known CLI conversation, Claude Control starts a terminal copy and adds it to auto-restore. */
@@ -101,6 +104,7 @@ export interface SessionPatch {
   labelIds?: string[];
   note?: string;
   project?: string;
+  title?: string; // v2.5: "" clears the hub name
 }
 
 export interface PushPayload {

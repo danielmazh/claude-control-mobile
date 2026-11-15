@@ -442,6 +442,17 @@ export function createDeck(opts: DeckOptions): Deck {
         await opts.push.send({ title: "Claude Control Mobile", body: "Test push", sessionId: "test", url: "/" });
         return noContent(res);
       }
+      // A push from a local script on this Mac (for example the Remote Control watchdog
+      // when the terminal CLI is logged out). Same token and origin rules as any write.
+      if (method === "POST" && path === "/api/push/notify") {
+        const body = (await readJson(req)) as { title?: unknown; body?: unknown; tag?: unknown } | undefined;
+        const title = typeof body?.title === "string" ? body.title.trim().slice(0, 120) : "";
+        const text = typeof body?.body === "string" ? body.body.trim().slice(0, 300) : "";
+        if (!title) throw new HttpError(400, "title required");
+        const tag = typeof body?.tag === "string" && body.tag ? body.tag.slice(0, 60) : "notify";
+        await opts.push.send({ title, body: text, sessionId: tag, url: "/" });
+        return noContent(res);
+      }
     }
 
     return sendError(res, 404, "not found");

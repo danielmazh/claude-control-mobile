@@ -1,4 +1,4 @@
-// Fake data for dev and screenshots without the server (contract v2.4). Titles are invented.
+// Fake data for dev and screenshots without the server (contract v2.5). Titles are invented.
 // Texts follow the UI language: English or Hebrew (spec 0006).
 import { lang } from "./i18n";
 import type { Devices, Label, Link, Session, Snapshot, Subagent } from "./types";
@@ -233,9 +233,12 @@ export function makeMockSnapshot(now = Date.now()): Snapshot {
     terminal: null,
     revive: "resume",
     kind: "code",
+    appTitle: "",
+    renamed: false,
     ...s,
   }));
   for (const s of sessions) delete (s as Partial<Seed>).ago;
+  for (const s of sessions) if (!s.appTitle) s.appTitle = s.title;
   const byId = new Map(sessions.map((s) => [s.id, s]));
   for (const s of sessions) {
     if (s.parentId) byId.get(s.parentId)?.childIds.push(s.id);

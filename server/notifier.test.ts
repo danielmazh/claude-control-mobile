@@ -8,6 +8,7 @@ const mk = (id: string, status: Status, pinned = true): Session => ({
   openUrl: id === "a" ? "https://claude.ai/code/session_01A" : null, pinned, priority: "normal", labelIds: [], note: "",
   parentId: null, childIds: [], depth: 0, summary: null, needsAction: null,
   subagents: { running: 0, done: 0, items: [] }, links: [], remoteSteered: false, replacedBy: null, replaces: [], source: "desktop", terminal: null, revive: null, kind: "code",
+  appTitle: "T " + id, renamed: false,
 });
 
 test("push once when a pinned session turns waiting, with debounce", async () => {

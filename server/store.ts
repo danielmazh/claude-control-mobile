@@ -1,4 +1,4 @@
-// User layer: pins, priority, labels, notes, project overrides.
+// User layer: pins, priority, labels, notes, project overrides, hub names (title).
 // Saved in <dataDir>/state.json with an atomic write (temp file + rename).
 
 import { mkdirSync, readFileSync, renameSync, writeFileSync, existsSync } from "node:fs";
@@ -12,6 +12,7 @@ export interface UserSession {
   labelIds?: string[];
   note?: string;
   project?: string; // override; missing means "use the cwd folder name"
+  title?: string; // hub name; missing means "use the title from Claude"
 }
 
 export interface UserState {
@@ -24,7 +25,7 @@ export class ValidationError extends Error {}
 
 const PRIORITIES: readonly Priority[] = ["high", "normal", "low"];
 const COLOR = /^#[0-9a-fA-F]{6}$/;
-export const LIMITS = { note: 2000, project: 100, labelName: 40, labels: 200, labelIds: 50 };
+export const LIMITS = { note: 2000, project: 100, labelName: 40, labels: 200, labelIds: 50, title: 120 };
 
 export function emptyState(): UserState {
   return { version: 1, sessions: {}, labels: [] };
@@ -86,6 +87,10 @@ export class UserStore {
       if (patch.project === "") delete cur.project;
       else cur.project = patch.project;
     }
+    if (patch.title !== undefined) {
+      if (patch.title === "") delete cur.title;
+      else cur.title = patch.title;
+    }
     this.state.sessions[id] = cur;
     this.save();
     return cur;
@@ -106,6 +111,7 @@ export class UserStore {
     if (old.labelIds?.length) cur.labelIds = [...new Set([...(cur.labelIds ?? []), ...old.labelIds])].slice(0, LIMITS.labelIds);
     if (!cur.note && old.note) cur.note = old.note;
     if (!cur.project && old.project) cur.project = old.project;
+    if (!cur.title && old.title) cur.title = old.title;
     this.state.sessions[to] = cur;
     delete this.state.sessions[from];
     this.save();
@@ -172,7 +178,7 @@ function checkColor(v: unknown): string {
 }
 
 export function validateSessionPatch(body: unknown, labelIds: Set<string>): SessionPatch {
-  const b = asObject(body, ["pinned", "priority", "labelIds", "note", "project"]);
+  const b = asObject(body, ["pinned", "priority", "labelIds", "note", "project", "title"]);
   const out: SessionPatch = {};
   if (b.pinned !== undefined) {
     if (typeof b.pinned !== "boolean") throw new ValidationError("pinned must be a boolean");
@@ -207,6 +213,16 @@ export function validateSessionPatch(body: unknown, labelIds: Set<string>): Sess
       out.project = p;
     }
   }
+  if (b.title !== undefined) {
+    // null or "" (also only spaces) clears the hub name.
+    if (b.title === null) out.title = "";
+    else if (typeof b.title !== "string") throw new ValidationError("title must be a string");
+    else {
+      const t = b.title.trim();
+      if (t.length > LIMITS.title) throw new ValidationError(`title max ${LIMITS.title} chars`);
+      out.title = t;
+    }
+  }
   return out;
 }
 
@@ -233,6 +249,7 @@ function normalize(j: unknown): UserState {
       if (Array.isArray(s.labelIds)) u.labelIds = s.labelIds.filter((x): x is string => typeof x === "string" && known.has(x));
       if (typeof s.note === "string") u.note = s.note;
       if (typeof s.project === "string" && s.project) u.project = s.project;
+      if (typeof s.title === "string" && s.title.trim()) u.title = s.title.trim().slice(0, LIMITS.title);
       st.sessions[id] = u;
     }
   }

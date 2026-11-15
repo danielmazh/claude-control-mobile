@@ -100,6 +100,21 @@ test("PATCH session: validation, 404, success", async () => {
   assert.equal(s.title, "Fake idle session");
 });
 
+test("PATCH session title: hub name, too long is 400, empty clears", async () => {
+  const url = "/api/sessions/local_fx-idle";
+  const long = await write("PATCH", url, { title: "x".repeat(121) });
+  assert.equal(long.status, 400);
+  assert.match((await long.json()).error, /title/);
+  assert.equal((await write("PATCH", url, { title: 7 })).status, 400);
+  const ok = await (await write("PATCH", url, { title: "  Fake hub name " })).json();
+  assert.equal(ok.title, "Fake hub name");
+  assert.equal(ok.appTitle, "Fake idle session");
+  assert.equal(ok.renamed, true);
+  const cleared = await (await write("PATCH", url, { title: "" })).json();
+  assert.equal(cleared.title, "Fake idle session");
+  assert.equal(cleared.renamed, false);
+});
+
 test("labels: create, patch, delete cascade", async () => {
   const l = await (await write("POST", "/api/labels", { name: "Ops", color: "#00ff00" })).json();
   assert.match(l.id, /^lbl_/);
@@ -120,6 +135,9 @@ test("push endpoints", async () => {
   assert.equal((await write("POST", "/api/push/subscribe", "null")).status, 400);
   assert.equal((await write("POST", "/api/push/test")).status, 204);
   assert.equal(pushed.at(-1)?.sessionId, "test");
+  assert.equal((await write("POST", "/api/push/notify", { title: "Login lost", body: "Run claude auth login", tag: "auth" })).status, 204);
+  assert.deepEqual(pushed.at(-1), { title: "Login lost", body: "Run claude auth login", sessionId: "auth", url: "/" });
+  assert.equal((await write("POST", "/api/push/notify", { body: "no title" })).status, 400);
 });
 
 test("SSE sends a snapshot, then a new one on file change", async () => {

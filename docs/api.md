@@ -1,4 +1,4 @@
-# API contract v2.4 (specs 0002 to 0005, extends v1)
+# API contract v2.5 (specs 0002 to 0005, extends v1)
 
 The server and the web UI are built in parallel against this file. Change it only with the orchestrator.
 Shared types live in `shared/types.ts` (owned by lane A, read by lane B).
@@ -24,7 +24,7 @@ interface Label { id: string; name: string; color: string }   // color = hex "#r
 
 interface Session {
   id: string;              // desktop sessionId (local_...), cli_<CLI session id> for a terminal session, cowork_<sessionId> for a Cowork chat
-  title: string;           // exactly as the Claude app shows it
+  title: string;           // v2.5: the hub name when the user set one, else appTitle
   cwd: string;
   project: string;         // group name: user override, else detected subfolder when cwd is a workspace root, else last folder name of cwd
   status: Status;
@@ -55,6 +55,9 @@ interface Session {
   revive: "restart" | "resume" | null; // how POST /api/sessions/:id/revive works; null = cannot revive
   // v2.4 (spec 0005)
   kind: Kind;                 // "code": desktop and terminal; "general": Cowork chats. The UI keeps them apart
+  // v2.5: rename for the hub only
+  appTitle: string;           // exactly as the Claude app (or terminal manifest, Cowork) shows it
+  renamed: boolean;           // true when the user set a hub name
 }
 
 interface TerminalInfo {
@@ -113,7 +116,7 @@ interface Snapshot { sessions: Session[]; labels: Label[]; generatedAt: number }
 | GET | `/api/snapshot` | - | `Snapshot` (all sessions, UI filters) |
 | GET | `/api/devices` | - | `Devices` |
 | GET | `/api/events` | - | SSE stream. Event `snapshot` with full `Snapshot` on every change, `ping` every 25s |
-| PATCH | `/api/sessions/:id` | `Partial<{pinned, priority, labelIds, note, project}>` | updated `Session` |
+| PATCH | `/api/sessions/:id` | `Partial<{pinned, priority, labelIds, note, project, title}>` | updated `Session` |
 | POST | `/api/labels` | `{name, color}` | `Label` |
 | PATCH | `/api/labels/:id` | `Partial<{name, color}>` | `Label` |
 | DELETE | `/api/labels/:id` | - | `204` (also removed from sessions) |
@@ -126,8 +129,11 @@ interface Snapshot { sessions: Session[]; labels: Label[]; generatedAt: number }
 
 Errors: `{error: string}` with 400 / 401 / 403 / 404, and for the v2.3 endpoints 409 (Claude Control refused) and 503 (`{error: "Claude Control לא רץ"}`).
 
+## Rename (v2.5)
+`PATCH /api/sessions/:id` with `title` sets a name for the hub only. The value is trimmed; `""` (or only spaces, or `null`) clears it; more than 120 chars is 400. Claude's own files are never written: the name lives in `data/state.json` like the note. The snapshot then shows `title` = the hub name, `appTitle` = the name from Claude, `renamed: true`. Pushes (waiting, fall, `parent › child`) use `title`. The UI search matches `title` and `appTitle`.
+
 ## Restarts (v2.1)
-When a session is replaced, the user layer (pinned, priority, labels, note, project override) moves to the newest session in the chain, so nothing is lost. The old session stays in the snapshot with `replacedBy` set. Its children follow the newest parent.
+When a session is replaced, the user layer (pinned, priority, labels, note, project override, hub name) moves to the newest session in the chain, so nothing is lost. The old session stays in the snapshot with `replacedBy` set. Its children follow the newest parent.
 
 ## Terminal sessions (v2.2, spec 0003)
 Source: the claude-control manifest `~/.config/claude-rc/sessions.conf` (`name|session-id|folder`), read only. A manifest line shows only when its transcript `~/.claude/projects/<encoded cwd>/<id>.jsonl` exists (searched in every project folder when it is not under the manifest folder).
@@ -173,7 +179,7 @@ Sent when a pinned session changes to `waiting`. A `waiting` session with `lastA
 - Env `DECK_RC_MANIFEST` overrides the manifest path.
 - Env `DECK_CONTROL_URL` overrides the Claude Control URL (default `http://127.0.0.1:7799`).
 - Env `DECK_COWORK_DIR` overrides the Cowork session folder (v2.4).
-- `data/state.json` - user layer (pins, priority, labels, notes, project overrides). Atomic write.
+- `data/state.json` - user layer (pins, priority, labels, notes, project overrides, hub names). Atomic write.
 - `data/push.json` - VAPID keys + subscriptions.
 - `data/token` - auth token (generated on first run, mode 600).
 - Static UI served from `web/dist/`.

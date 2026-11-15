@@ -1,4 +1,4 @@
-import { useMemo, useState } from "preact/hooks";
+import { useEffect, useMemo, useState } from "preact/hooks";
 import { Icon } from "../components/Icon";
 import { Chevron, Dot, Empty, SourceTag, TabHeader, useApp } from "../components/ui";
 import { controlLine, fallenSessions, resumeAllSpec, reviveSpec, RunSheet, useControlStatus, type RunSpec } from "../components/Revive";
@@ -20,6 +20,15 @@ function prune(s: Session, idx: Index, match: (s: Session) => boolean): Node | n
 }
 
 const KIND_KEY = "hub.chatsKind";
+
+// The "Not running" section is closed on every visit. Only the Home banner opens it:
+// it sets this one-shot flag right before it switches to the Chats tab.
+let fallenOpenOnce = false;
+
+/** Open the Chats tab on code chats with the "Not running" section expanded (one time). */
+export function openFallenNext(): void {
+  fallenOpenOnce = true;
+}
 
 /** The last segment, per device. Storage can throw (private mode), so every access is guarded. */
 function readKind(): Kind {
@@ -43,7 +52,7 @@ export function ChatsTab() {
   const { deck, idx } = useApp();
   const [query, setQuery] = useState("");
   const [project, setProject] = useState<string | null>(null);
-  const [kind, setKindState] = useState<Kind>(readKind);
+  const [kind, setKindState] = useState<Kind>(() => (fallenOpenOnce ? "code" : readKind()));
   const setKind = (k: Kind) => {
     setKindState(k);
     setProject(null);
@@ -67,7 +76,8 @@ export function ChatsTab() {
 
   const tree = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const match = (s: Session) => !q || s.title.toLowerCase().includes(q) || s.project.toLowerCase().includes(q);
+    const match = (s: Session) =>
+      !q || s.title.toLowerCase().includes(q) || s.appTitle.toLowerCase().includes(q) || s.project.toLowerCase().includes(q);
     return roots
       .filter((r) => !activeProject || r.project === activeProject)
       .map((r) => prune(r, idx, match))
@@ -208,6 +218,17 @@ function FallenSection() {
   const { deck, idx, now, nav } = useApp();
   const st = useControlStatus();
   const [sheet, setSheet] = useState<RunSpec | null>(null);
+  const [open, setOpen] = useState(() => {
+    const o = fallenOpenOnce;
+    fallenOpenOnce = false;
+    return o;
+  });
+  const [fromBanner] = useState(open);
+  useEffect(() => {
+    if (!fromBanner) return;
+    const id = requestAnimationFrame(() => document.getElementById("fallen")?.scrollIntoView({ block: "nearest" }));
+    return () => cancelAnimationFrame(id);
+  }, [fromBanner]);
   const fallen = useMemo(() => fallenSessions(deck.sessions).sort(compare(idx)), [deck.sessions, idx]);
   const canRun = st?.reachable !== false;
   return (
@@ -218,42 +239,55 @@ function FallenSection() {
       </p>
       {fallen.length > 0 && (
         <section id="fallen" class="card fall-card">
-          <div class="card-head">
-            <h2>
-              <Icon name="unplug" size={20} />
-              {T.fallenTitle}
-            </h2>
-            <span class="card-meta">{fallen.length}</span>
-          </div>
-          <div class="rows">
-            {fallen.map((s) => (
-              <div class="row" key={s.id}>
-                <button type="button" class="row-text fall-main" onClick={() => nav.push({ kind: "chat", id: s.id })}>
-                  <span class="row-title">
-                    <bdi>{s.title}</bdi>
-                  </span>
-                  <span class="row-sub">
-                    {T.stopped}
-                    {DOT}
-                    {relativeTime(s.lastActivityAt, now)}
-                  </span>
-                </button>
-                <span class="row-meta">
-                  <button type="button" class="btn-outline small" disabled={!canRun} onClick={() => setSheet(reviveSpec(s))}>
-                    {T.revive}
+          <h2 class="fold-h">
+            <button
+              type="button"
+              class={cx("card-head", "fold-head", open && "open")}
+              aria-expanded={open}
+              aria-controls="fallen-body"
+              onClick={() => setOpen(!open)}
+            >
+              <span class="fold-title">
+                <Icon name="unplug" size={20} />
+                {T.fallenTitle}
+              </span>
+              <span class="card-meta">{fallen.length}</span>
+              <span class="fold-chev" aria-hidden="true">
+                <Icon name="chevron-left" size={20} />
+              </span>
+            </button>
+          </h2>
+          <div id="fallen-body" hidden={!open}>
+            <div class="rows">
+              {fallen.map((s) => (
+                <div class="row" key={s.id}>
+                  <button type="button" class="row-text fall-main" onClick={() => nav.push({ kind: "chat", id: s.id })}>
+                    <span class="row-title">
+                      <bdi>{s.title}</bdi>
+                    </span>
+                    <span class="row-sub">
+                      {T.stopped}
+                      {DOT}
+                      {relativeTime(s.lastActivityAt, now)}
+                    </span>
                   </button>
-                </span>
-              </div>
-            ))}
-          </div>
-          {fallen.length > 1 && (
-            <div class="card-actions">
-              <button type="button" class="btn-primary" disabled={!canRun} onClick={() => setSheet(resumeAllSpec())}>
-                <Icon name="history" size={20} />
-                {T.reviveAll}
-              </button>
+                  <span class="row-meta">
+                    <button type="button" class="btn-outline small" disabled={!canRun} onClick={() => setSheet(reviveSpec(s))}>
+                      {T.revive}
+                    </button>
+                  </span>
+                </div>
+              ))}
             </div>
-          )}
+            {fallen.length > 1 && (
+              <div class="card-actions">
+                <button type="button" class="btn-primary" disabled={!canRun} onClick={() => setSheet(resumeAllSpec())}>
+                  <Icon name="history" size={20} />
+                  {T.reviveAll}
+                </button>
+              </div>
+            )}
+          </div>
         </section>
       )}
       {sheet && <RunSheet spec={sheet} onClose={() => setSheet(null)} />}

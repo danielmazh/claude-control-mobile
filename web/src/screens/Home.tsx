@@ -2,6 +2,7 @@ import { useMemo, useState } from "preact/hooks";
 import { Icon } from "../components/Icon";
 import { Dot, Empty, ProjectChip, SourceTag, TabHeader, useApp, Chevron } from "../components/ui";
 import { fallenSessions } from "../components/Revive";
+import { openFallenNext } from "./Chats";
 import { T } from "../i18n";
 import type { Kind, Session } from "../types";
 import { compare, compareChildren, cx, DOT, isFinished, isLive, liveChildren, relativeTime, todayLine, tone } from "../util";
@@ -35,7 +36,10 @@ export function Home() {
     <div class="screen">
       <TabHeader title="Claude Control Mobile" sub={todayLine(now)} logo />
       {fallen > 0 && (
-        <button type="button" class="wait-strip fall-strip" onClick={() => nav.setTab("chats")}>
+        <button type="button" class="wait-strip fall-strip" onClick={() => {
+            openFallenNext();
+            nav.setTab("chats");
+          }}>
           <span class="ws-main">
             <Icon name="unplug" size={24} />
             {fallen === 1 ? T.fallenOne : T.fallenMany(fallen)}
@@ -60,7 +64,10 @@ export function Home() {
       )}
       {cards.length === 0 && (
         <Empty icon="star" title={T.homeEmptyTitle} text={T.homeEmptyText}>
-          <button type="button" class="btn-outline" onClick={() => nav.setTab("chats")}>
+          <button type="button" class="btn-outline" onClick={() => {
+            openFallenNext();
+            nav.setTab("chats");
+          }}>
             {T.toChats}
           </button>
         </Empty>

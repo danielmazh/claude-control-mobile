@@ -742,6 +742,19 @@ p {
   margin-top: -8px;
 }
 
+/* Edit screen: hub name (v2.5). */
+.name-hint {
+  margin-top: 8px;
+  overflow-wrap: anywhere;
+}
+
+.name-reset {
+  gap: 0;
+  padding: 0;
+  margin-top: 4px;
+  color: var(--brand-ink);
+}
+
 .body-text {
   font-size: 15px;
   line-height: 1.6;
@@ -1707,6 +1720,54 @@ p {
 
 .fall-card .row-meta .btn-outline {
   min-height: 40px;
+}
+
+/* "Not running" is closed by default: the header row toggles it. */
+.fold-h {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.fold-head {
+  width: 100%;
+  min-height: 44px;
+  margin-bottom: 0;
+}
+
+.fold-head.open {
+  margin-bottom: 6px;
+}
+
+.fold-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  min-width: 0;
+  margin-inline-end: auto;
+}
+
+.fold-title .icon {
+  color: var(--brand-ink);
+}
+
+.fold-chev {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  color: var(--control);
+  transform: rotate(-90deg);
+  transition: transform 0.2s ease;
+}
+
+.fold-head.open .fold-chev {
+  transform: rotate(90deg);
+}
+
+.fold-head:active {
+  opacity: 0.75;
 }
 
 

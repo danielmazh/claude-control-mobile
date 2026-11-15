@@ -33,7 +33,7 @@ export function reviveMode(base: BaseSession): ReviveMode | null {
   return null;
 }
 
-/** Project: user override, else the detected subfolder, else the last folder name of cwd. */
+/** Project: user override, else the detected subfolder, else the last folder name of cwd. Title: hub name, else the app title. */
 export function mergeSession(
   base: BaseSession,
   user: UserSession,
@@ -44,6 +44,9 @@ export function mergeSession(
   const { cliSessionId: _cli, spawnedFromId: _p, createdAt: _c, conversationIds: _ids, projectHint: _h, kind: _k, ...rest } = base;
   return {
     ...rest,
+    title: user.title || base.title,
+    appTitle: base.title,
+    renamed: !!user.title,
     links: base.links.map((l) => ({ ...l })),
     terminal: base.terminal ? { ...base.terminal } : null,
     revive: reviveMode(base),
