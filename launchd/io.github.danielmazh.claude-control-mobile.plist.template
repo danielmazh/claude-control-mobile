@@ -11,9 +11,9 @@
 
   <key>ProgramArguments</key>
   <array>
-    <string>__NODE_PATH__</string>
-    <string>--experimental-strip-types</string>
-    <string>server/main.ts</string>
+    <!-- start.sh runs DECK_NODE, or another node >= 22.6 if that one is gone. -->
+    <string>/bin/bash</string>
+    <string>__WORKING_DIR__/scripts/start.sh</string>
   </array>
 
   <key>WorkingDirectory</key>
@@ -21,6 +21,8 @@
 
   <key>EnvironmentVariables</key>
   <dict>
+    <key>DECK_NODE</key>
+    <string>__NODE_PATH__</string>
     <key>DECK_PORT</key>
     <string>7810</string>
     <key>DECK_DATA_DIR</key>

@@ -33,8 +33,12 @@ function OpenLabel({ prefix }: { prefix: string }) {
 }
 
 /** Desktop Code sessions open in the Claude app through its own link scheme. */
-export const appUrl = (s: Session) =>
-  s.source === "desktop" && s.id.startsWith("local_") ? `claude://code/continue?session=${encodeURIComponent(s.id)}` : null;
+export function appUrl(s: Session): string | null {
+  if (s.source === "desktop" && s.id.startsWith("local_")) return `claude://code/continue?session=${encodeURIComponent(s.id)}`;
+  // Remote Control sessions (terminal ones too): the app takes the same path as claude.ai.
+  if (s.openUrl?.startsWith("https://claude.ai/code/session_")) return "claude://claude.ai" + new URL(s.openUrl).pathname;
+  return null;
+}
 
 
 /** On a Mac it asks: the Claude app or the browser. Elsewhere it opens the web link. */
